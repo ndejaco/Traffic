@@ -57,7 +57,7 @@ public class Parser {
 		double mDistance = distance(dLastLat, dLastLong, nLat, nLong, "K")*1000;
 		
 		if (difference > 0) {
-			if ((double) (mDistance/difference) > 44.704) {
+			if ((double) (mDistance/difference) > 49.1744) {
 				return false;
 			}
 			
