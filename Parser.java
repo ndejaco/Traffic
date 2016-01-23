@@ -13,11 +13,18 @@ public class Parser {
 		String lastLat = "";
 		String lastLong = "";
 		String lastTime = "";
+		int latIndex = -1, longIndex = -1, tripIndex = -1, timeIndex = -1;
 		try(BufferedReader br = new BufferedReader(new FileReader(file))) {
+			 temp = br.readLine().split(",");
+		     latIndex = getIndex("LocationLatitude", temp);
+		     longIndex = getIndex("LocationLongitute", temp);
+		     tripIndex = getIndex("TripID", temp);
+		     timeIndex = getIndex("unixtime", temp);
+			
 		    for(String line; (line = br.readLine()) != null; ) {
 		         temp = line.split(",");
 		         
-		         if (lastTripId.equals(temp[1])) {
+		         if (lastTripId.equals(temp[tripIndex])) {
 		        	 if (checkDistance(lastLat, lastLong, lastTime, temp)) {
 		        		 System.out.println(line);
 		        	 }
@@ -27,10 +34,10 @@ public class Parser {
 		        	 System.out.println(line);
 		         }
 		         
-		         lastTripId = temp[1];
-		         lastLat = temp[3];
-		         lastLong = temp[4];
-		         lastTime = temp[8];
+		         lastTripId = temp[tripIndex];
+		         lastLat = temp[latIndex];
+		         lastLong = temp[longIndex];
+		         lastTime = temp[timeIndex];
 		 
 		     
 		    }
@@ -96,5 +103,17 @@ public class Parser {
 	private static double rad2deg(double rad) {
 		return (rad * 180 / Math.PI);
 	}
+	
+	private static int getIndex(String header, String[] arr) {
+		for (int i = 0; i < arr.length; i++) {
+			if (arr[i].equals(header)) {
+				return i;
+			}
+		}
+		
+		return -1;
+	}
+
+	
 
 }
