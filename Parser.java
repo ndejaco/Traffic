@@ -25,7 +25,7 @@ public class Parser {
 		         temp = line.split(",");
 		         
 		         if (lastTripId.equals(temp[tripIndex])) {
-		        	 if (checkDistance(lastLat, lastLong, lastTime, temp)) {
+		        	 if (checkDistance(latIndex, tripIndex, lastLat, lastLong, lastTime, temp)) {
 		        		 System.out.println(line);
 		        	 }
 		         }
@@ -51,13 +51,13 @@ public class Parser {
 		}
 	}
 	
-	public static boolean checkDistance(String lastLat, String lastLong, String lastTime, String[] temp) {
+	public static boolean checkDistance(int latIndex, int timeIndex, String lastLat, String lastLong, String lastTime, String[] temp) {
 		double dLastLat = Double.parseDouble(lastLat);
 		double dLastLong = Double.parseDouble(lastLong);
-		double nLat = Double.parseDouble(temp[3]);
-		double nLong = Double.parseDouble(temp[4]);
+		double nLat = Double.parseDouble(temp[latIndex]);
+		double nLong = Double.parseDouble(temp[latIndex+1]);
 		double dLastTime = Double.parseDouble(lastTime);
-		double nTime = Double.parseDouble(temp[8]);
+		double nTime = Double.parseDouble(temp[timeIndex]);
 		
 		double difference = (nTime - dLastTime) * 0.001;
 	
@@ -117,3 +117,4 @@ public class Parser {
 	
 
 }
+
