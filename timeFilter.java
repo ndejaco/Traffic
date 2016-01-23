@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class timeFilter {
 
 	public static void main(String[] args) {
-		File file = new File("C:/Users/Nicholas/Desktop/trajectory10.csv");
+		File file = new File(args[0]);
 		String[] temp;
 		String lastTripId = "";
 		String lastTime = "";
@@ -25,17 +25,17 @@ public class timeFilter {
 			timeIndex = getIndex("unixtime", temp);
 
 			for (String line; (line = br.readLine()) != null;) {
-				// System.out.println(line);
 				temp = line.split(",");
 
 				if (lastTripId.equals(temp[tripIndex])) {
 					if (!brokenTrip && checkTime(timeIndex, lastTime, temp)) {
 						trip.add(line);
+                                                System.out.println("here");
 					}
 
 					else {
-						//System.out.println("eliminated");
-						trip = new ArrayList<String>();
+					        System.out.println("eliminated");
+                                         	trip = new ArrayList<String>();
 						brokenTrip = true;
 					}
 				}
@@ -61,6 +61,10 @@ public class timeFilter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+                for (String s: trip) {
+                     System.out.println(s);
+                }
 	}
 
 	public static boolean checkTime(int timeIndex, String lastTime, String[] temp) {
