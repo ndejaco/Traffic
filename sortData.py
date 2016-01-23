@@ -1,13 +1,16 @@
 import sys
 
-inFile = open(sys.argv[1])
-outFile = open(sys.argv[2], 'w')
+header = next(sys.stdin).strip()
+print header
 
-outFile.write(inFile.readline())
-lines = inFile.readlines()
-lines = map(lambda x: x.split(","), lines)
-print lines[1:3]
-sortedLines = sorted(lines,key=lambda x: (int(x[0]),int(x[1]),int(x[8])))
-for sortedLine in sortedLines: outFile.write(','.join(sortedLine))
+fields = header.split(',')
+i1 = fields.index('UserID')
+i2 = fields.index('TripID')
+i3 = fields.index('unixtime')
 
+def sorter(s): 
+	x = s.strip().split(',')
+	return (int(x[i1]), int(x[i2]), int(x[i3]))
 
+for line in sorted(sys.stdin, key=sorter):
+	print line.strip()
