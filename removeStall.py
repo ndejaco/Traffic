@@ -5,8 +5,8 @@ if len(sys.argv) == 3:
 	masterFile = open(sys.argv[2], "w")
 	inFile = open(sys.argv[1])
 elif len(sys.argv) == 1:
-	masterFile = sys.stdin
-	inFile = sys.stdout
+	masterFile = sys.stdout
+	inFile = sys.stdin
 else:
     print 'Error: give an input and output file as arguments'
     print '       or pipe in/out of this program'
