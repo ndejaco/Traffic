@@ -30,11 +30,11 @@ public class timeFilter {
 				if (lastTripId.equals(temp[tripIndex])) {
 					if (!brokenTrip && checkTime(timeIndex, lastTime, temp)) {
 						trip.add(line);
-                                                System.out.println("here");
+                                               
 					}
 
 					else {
-					        System.out.println("eliminated");
+					       
                                          	trip = new ArrayList<String>();
 						brokenTrip = true;
 					}
