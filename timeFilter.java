@@ -30,13 +30,16 @@ public class timeFilter {
 				if (lastTripId.equals(temp[tripIndex])) {
 					if (!brokenTrip && checkTime(timeIndex, lastTime, temp)) {
 						trip.add(line);
-                                               
+
 					}
 
 					else {
-					       
+
                                          	trip = new ArrayList<String>();
 						brokenTrip = true;
+						if(!checkTime(timeIndex, lastTime, temp)){
+						System.err.println(lastTripId + ":" + (Long.parseLong(temp[timeIndex]) - Long.parseLong(lastTime)));
+						}
 					}
 				}
 
@@ -44,7 +47,7 @@ public class timeFilter {
 						for (String s : trip) {
 						    System.out.println(s);
 						}
-				
+
 
 					brokenTrip = false;
 				}
