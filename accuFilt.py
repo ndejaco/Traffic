@@ -21,11 +21,9 @@ for idx, row in enumerate(reader):
         if(int(row[fields.index("accuracy")]) <= int(sys.argv[1])):
             rows.append(row)
         else:
-            #print(row[tid])
             while rows[-1][tid] == row[tid]:
                 rows.pop()
             watchout = row[tid]
 
 for r in rows:
     print(",".join(r))
-
