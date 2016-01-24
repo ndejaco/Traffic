@@ -17,7 +17,7 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 //var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
 var colorScale = d3.scale.category20();
 var i = 0;
-d3.csv("small.csv", function(error, data){
+d3.csv("tr_all_final1.csv", function(error, data){
     console.log("file loaded: " + (new Date().getTime() - startTime) + " ms.")
     if (error) {
         alert(error);
@@ -50,10 +50,10 @@ d3.csv("small.csv", function(error, data){
             var hour = date.getHours();
             var min = Math.floor(date.getMinutes()/15)*4;
             currPath = {
-							tid: d.TripID, 
-							hour: hour, 
-							minute: min, 
-							date: date, 
+							tid: d.TripID,
+							hour: hour,
+							minute: min,
+							date: date,
 							path: [l]
 						};
         }
@@ -61,13 +61,13 @@ d3.csv("small.csv", function(error, data){
     delete data;
     console.log("Data Loop Done: " + (new Date().getTime() - startTime) + " ms.")
     //console.log(paths)
-		
+
 		console.log(paths[0])
-		var tidToPath = paths.reduce(function(o, path) { 
-			o[path.tid] = path;	
+		var tidToPath = paths.reduce(function(o, path) {
+			o[path.tid] = path;
 			return o;
 		}, {});
-		
+
     for (var p in paths) {
         //console.log(paths[p]);
         var polyline = L.polyline(paths[p].path, {color: "#fff", opacity: 0.05, weight: 2, className: "t" + paths[p].tid}).addTo(map);
@@ -95,9 +95,9 @@ d3.csv("small.csv", function(error, data){
 				var y1 = e.latlng.lat + EPS;
 			} else {
 				var x0 = bnds[0];
-				var x1 = bnds[1]; 
-				var y0 = bnds[2]; 
-				var y1 = bnds[3]; 
+				var x1 = bnds[1];
+				var y0 = bnds[2];
+				var y1 = bnds[3];
 			}
 
 			//lastBrushSet.forEach(tid => {
@@ -112,10 +112,10 @@ d3.csv("small.csv", function(error, data){
 				.map(tid => tidToPath[tid])
 				.filter(x => x)
 				.map(x => x.path)
-				.map(path => { 
+				.map(path => {
 					var index = Math.floor(Math.random() * path.length);
 					return {
-						circle: L.circle(path[index], 3, { color: '#800', opacity: 1 }), 
+						circle: L.circle(path[index], 3, { color: '#800', opacity: 1 }),
 						index: index,
 						path: path
 					};
@@ -137,7 +137,7 @@ d3.csv("small.csv", function(error, data){
 
 			function update() {
 				circs.forEach(function(c) {
-					c.circle.setLatLng(c.path[c.index++%c.path.length]);	
+					c.circle.setLatLng(c.path[c.index++%c.path.length]);
 				});
 				setTimeout(update, DELAY - (Date.now() - t));
 				t = Date.now();
@@ -174,7 +174,7 @@ d3.csv("small.csv", function(error, data){
 			selectSection(undefined, [x0, y0, x1, y1]);
 			start = null;
 		});
-				
+
 
 		console.log('really done');
 });
@@ -192,7 +192,7 @@ function quadtree(data) {
 			.x(d => d.LocationLongitute)
 			.y(d => d.LocationLatitude)
 						 )(data.filter((d, i) => i % 20 === 0));
-	
+
 	return function idsInRect(x0, y0, x3, y3) {
 		var ids = {};
 		root.visit(function(node, x1, y1, x2, y2) {
