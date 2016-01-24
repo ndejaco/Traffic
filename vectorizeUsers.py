@@ -25,8 +25,7 @@ def convertToValueDict(setOfItems):
     return { x[val] : val for val in xrange(len(x)) } 
 
 inFile = open(sys.argv[1])
-vectorFile = open(sys.argv[2], 'w')
-similarityFile = open(sys.argv[3], 'w')
+similarityFile = open(sys.argv[2], 'w')
 
 header = inFile.readline().split(",")
 line = inFile.readline()
@@ -46,7 +45,4 @@ for user in users:
 valueDict = convertToValueDict(uniqueVals)
 
 for user in users:
-    fullMat = convertToFullMatrix(users[user], valueDict)
-    fullMat = map(str, fullMat )
-    vectorFile.write( ','.join(fullMat) + "\n" )
     similarityFile.write( str(sorted([(cosDist(users[user], users[other]), user, other) for other in users if other != user ] ,key = lambda x : x[0], reverse = True) ) + "\n" )

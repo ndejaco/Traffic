@@ -24,7 +24,7 @@ d3.csv("small.csv", function(error, data){
     }
 		var q = quadtree(data);
     console.log(data.length)
-    data = data.filter(function(d,i){ return i % 2 === 0;})
+    //data = data.filter(function(d,i){ return i % 1 === 0;})
     console.log(data.length)
     //console.log(data);
     var paths = [];

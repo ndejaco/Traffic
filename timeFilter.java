@@ -37,9 +37,6 @@ public class timeFilter {
 
                                          	trip = new ArrayList<String>();
 						brokenTrip = true;
-						if(!checkTime(timeIndex, lastTime, temp)){
-						System.err.println(lastTripId + ":" + (Long.parseLong(temp[timeIndex]) - Long.parseLong(lastTime)));
-						}
 					}
 				}
 
