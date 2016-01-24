@@ -11,7 +11,7 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 //var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
 var colorScale = d3.scale.category20();
 var i = 0;
-d3.csv("tr_all_filt_7col.csv", function(error, data){
+d3.csv("tr_all_filt_col7.csv", function(error, data){
     console.log("file loaded: " + (new Date().getTime() - startTime) + " ms.")
     if (error) {
         alert(error);
@@ -48,11 +48,12 @@ d3.csv("tr_all_filt_7col.csv", function(error, data){
     //console.log(paths)
     for (var p in paths) {
         //console.log(paths[p]);
-        var polyline = L.polyline(paths[p].path, {color: "#fff", opacity: 0.05, weight: 2, className: "t" + p}).addTo(map);
+        var polyline = L.polyline(paths[p].path, {color: "#fff", opacity: 0.05, weight: 2, className: "t" + paths[p].tid}).addTo(map);
         //polylines.push(polyline);
         polyline.on("click", function(e) {
             e.target.setStyle({ color: colorScale(i), opacity: 0.75, weight:6});
             e.target.bringToFront();
+            console.log(e.target._path);
             i++;
         })
     }
