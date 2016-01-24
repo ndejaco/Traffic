@@ -7,8 +7,7 @@ d3.selection.prototype.moveToFront = function() {
 var startTime = new Date().getTime();
 var map = L.map('map').setView([32.22, -110.93], 11);
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> Imagery © <a href="http://mapbox.com">Mapbox</a>',
-    maxZoom: 25,
+    maxZoom: 20,
     id: 'youhaowei.op72jf9g',
     accessToken: 'pk.eyJ1IjoieW91aGFvd2VpIiwiYSI6ImNpanFyOTl0ZTAzcnZ1eWx4M3R4YWh4cjkifQ.euhHOxoz-qgt9e93YGqlSQ'
 }).addTo(map);
@@ -97,9 +96,9 @@ d3.csv("tr_all_final1.csv", function(error, data){
 				var y1 = e.latlng.lat + EPS;
 			} else {
 				var x0 = bnds[0];
-				var y0 = bnds[1]; 
-				var x1 = bnds[2]; 
-				var y1 = bnds[3]; 
+				var y0 = bnds[1];
+				var x1 = bnds[2];
+				var y1 = bnds[3];
 			}
 
 			lastBrushSet
