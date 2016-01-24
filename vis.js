@@ -20,6 +20,7 @@ var globals = {
 //var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
 var colorScale = d3.scale.category20();
 var i = 0;
+var selectSection;
 d3.csv("tr_all_final1.csv", function(error, data){
     console.log("file loaded: " + (new Date().getTime() - startTime) + " ms.")
     if (error) {
@@ -89,18 +90,21 @@ d3.csv("tr_all_final1.csv", function(error, data){
 		var circs = [];
 
 		map.doubleClickZoom.disable();
-		function selectSection(e, bnds, llbnds) {
+		selectSection = function(e, bnds, llbnds) {
+			var no_change = false;	
 			if(e) {
 				var EPS = 0.002;
 				var x0 = e.latlng.lng - EPS;
 				var x1 = e.latlng.lng + EPS;
 				var y0 = e.latlng.lat - EPS;
 				var y1 = e.latlng.lat + EPS;
-			} else {
+			} else if(bnds){
 				var x0 = bnds[0];
 				var y0 = bnds[1];
 				var x1 = bnds[2];
 				var y1 = bnds[3];
+			} else {
+				no_change = true;	
 			}
 
 			lastBrushSet
@@ -111,7 +115,7 @@ d3.csv("tr_all_final1.csv", function(error, data){
 					line.setStyle({ color: '#fff', opacity: 0.05 });
 				});
 
-			lastBrushSet = q(x0, y0, x1, y1);
+			lastBrushSet = no_change ? lastBrushSet : q(x0, y0, x1, y1);
 
 			if(llbnds) {
 				lastBrushSet = lastBrushSet.filter(tid => {
@@ -165,9 +169,10 @@ d3.csv("tr_all_final1.csv", function(error, data){
 				var vis_diff = (daySeconds(new Date()) - vis_start);
 				var data_diff = REAL_SEC_PER_VIS_SEC * vis_diff;
 
-				var hour = Math.floor((data_diff + data_start) / 3600);
+				var hour = Math.floor(((data_diff + data_start) / 3600) % 24);
 				var minute = Math.floor(((data_diff + data_start) / 60) % 60);
-				document.getElementById('clock-div').textContent = hour + ':' + (minute < 10 ? '0' + minute : minute)
+				document.getElementById('clock-div').textContent = 
+					hour + ':' + (minute < 10 ? '0' + minute : minute)
 
 				circs.forEach(function(c) {
 					var pathOb = tidToPath[c.tid];
@@ -269,3 +274,42 @@ function quadtree(data) {
 	};
 }
 
+hours = []
+for(var i = 0; i < 24; i++)
+	hours.push(i);
+
+var rect = document.getElementById('time-selector').getBoundingClientRect();
+
+var width = rect.width;
+var height = rect.height;
+
+var xScale = d3.scale.linear()
+	.domain([0, 24])
+	.range([0, width]);
+
+var groups = d3.select('#time-selector')
+	.selectAll('rect')
+	.data(hours)
+	.enter()
+	.append('g')
+	.attr('transform', function(d) {
+		return 'translate(' + xScale(d) + ',0)'
+	})
+	.classed('time-box', true)
+	.on('click', function(d) {
+		globals.timeExtent[0] = new Date(2015, 1, 1, d, 0, 0);
+		selectSection();
+	})
+
+groups
+	.append('rect')
+	.attr('width', d => xScale(1) - xScale(0))
+	.attr('height', d => height)
+	.attr('fill', 'white')
+	.attr('stroke', 'black')
+
+d3.selectAll('.time-box')
+	.append('text')
+	.attr('y', 20)
+	.attr('x', 5)
+	.text(d => d + ':00')
