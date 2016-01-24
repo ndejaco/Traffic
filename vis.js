@@ -11,13 +11,13 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 //var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
 var colorScale = d3.scale.category20();
 var i = 0;
-d3.csv("tr-201510-dula500dir-utlldst.csv", function(error, data){
+d3.csv("tr_all_3col_1M.csv", function(error, data){
     console.log("file loaded: " + (new Date().getTime() - startTime) + " ms.")
     if (error) {
         alert(error);
     }
     console.log(data.length)
-    data = data.filter(function(d,i){ return i % 2 === 0;})
+    data = data.filter(function(d,i){ return i % 1 === 0;})
     console.log(data.length)
     //console.log(data);
     var paths = {};
@@ -38,11 +38,12 @@ d3.csv("tr-201510-dula500dir-utlldst.csv", function(error, data){
     polylines = [];
     for (var p in paths) {
         //console.log(paths[p]);
-        var polyline = L.polyline(paths[p], {color: "#111", className: "t" + p}).addTo(map);
+        var polyline = L.polyline(paths[p], {color: "#eee", weight: "2", opacity:"0.05", className: "t" + p}).addTo(map);
         polylines.push(polyline);
         polyline.on("click", function(e) {
-            e.target.setStyle({ color: colorScale(i) });
+            e.target.setStyle({ color: colorScale(i), weight: "5", opacity:"0.75" });
             e.target.bringToFront();
+            console.log(e.target._path);
             i++;
         })
 
