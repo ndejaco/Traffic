@@ -9,7 +9,7 @@ var map = L.map('map').setView([32.22, -110.93], 11);
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
     maxZoom: 20,
     id: 'youhaowei.op72jf9g',
-		accessToken: '<Your token here>'
+		accessToken: 'pk.eyJ1IjoieW91aGFvd2VpIiwiYSI6ImNpanFyOTl0ZTAzcnZ1eWx4M3R4YWh4cjkifQ.euhHOxoz-qgt9e93YGqlSQ'
 }).addTo(map);
 
 var globals = {
