@@ -86,13 +86,19 @@ d3.csv("small.csv", function(error, data){
 		var lastHour = 8;
 
 		map.doubleClickZoom.disable();
-		map.on('dblclick', function(e) {
-			console.log(e.latlng);
-			var EPS = 0.0005;
-			var x0 = e.latlng.lng - EPS;
-			var x1 = e.latlng.lng + EPS;
-			var y0 = e.latlng.lat - EPS;
-			var y1 = e.latlng.lat + EPS;
+		function selectSection(e, bnds) {
+			if(e) {
+				var EPS = 0.0005;
+				var x0 = e.latlng.lng - EPS;
+				var x1 = e.latlng.lng + EPS;
+				var y0 = e.latlng.lat - EPS;
+				var y1 = e.latlng.lat + EPS;
+			} else {
+				var x0 = bnds[0];
+				var x1 = bnds[1]; 
+				var y0 = bnds[2]; 
+				var y1 = bnds[3]; 
+			}
 
 			//lastBrushSet.forEach(tid => {
 			//	d3.select('.t' + tid)
@@ -103,11 +109,13 @@ d3.csv("small.csv", function(error, data){
 			lastBrushSet = q(x0, y0, x1, y1);
 
 			var circs = lastBrushSet
-				.map(tid => tidToPath[tid].path)
+				.map(tid => tidToPath[tid])
+				.filter(x => x)
+				.map(x => x.path)
 				.map(path => { 
 					var index = Math.floor(Math.random() * path.length);
 					return {
-						circle: L.circle(path[index], 3, { color: 'red', opacity: 1 }), 
+						circle: L.circle(path[index], 3, { color: '#800', opacity: 1 }), 
 						index: index,
 						path: path
 					};
@@ -116,14 +124,14 @@ d3.csv("small.csv", function(error, data){
 			circs.forEach(c => c.circle.addTo(map));
 
 			lastBrushSet
-				.map(tid => tidToPath[tid].polyline)
+				.map(tid => tidToPath[tid])
+				.filter(x => x)
+				.map(x => x.polyline)
 				.forEach(line => {
-					line.setStyle({ color: 'red', opacity: 1 });
-					line.moveToFront();
+					line.setStyle({ color: '#f00', opacity: 1 });
 				});
 
-
-			var DELAY = 100;
+			var DELAY = 400;
 
 			var t = Date.now();
 
@@ -136,7 +144,37 @@ d3.csv("small.csv", function(error, data){
 			}
 			setTimeout(update, DELAY);
 
+		}
+		map.on('dblclick', selectSection);
+		map.dragging.disable();
+
+		var start = null;
+		var nullBounds = [[0,0],[0,0]];
+		var rect = L.rectangle(nullBounds).addTo(map);
+		map.on('mousedown', e => {
+			console.log('mousedown', e)
+			start = e.latlng;
 		});
+		map.on('mousemove', e => {
+			console.log('mousemove', e)
+			if(start) {
+				x0 = Math.min(start.lng, e.latlng.lng);
+				x1 = Math.max(start.lng, e.latlng.lng);
+				y0 = Math.min(start.lat, e.latlng.lat);
+				y1 = Math.max(start.lat, e.latlng.lat);
+				rect.setBounds([[x0, y0], [x1, y1]]);
+			}
+		});
+		map.on('mouseup', e => {
+			console.log('mouseup', e)
+			x0 = Math.min(start.lng, e.latlng.lng);
+			x1 = Math.max(start.lng, e.latlng.lng);
+			y0 = Math.min(start.lat, e.latlng.lat);
+			y1 = Math.max(start.lat, e.latlng.lat);
+			selectSection(undefined, [x0, y0, x1, y1]);
+			start = null;
+		});
+				
 
 		console.log('really done');
 });
