@@ -84,6 +84,8 @@ d3.csv("tr_all_final1.csv", function(error, data){
 
 		var lastBrushSet = [];
 		var lastHour = 8;
+		var lastTimeoutID = null;
+		var circs = [];
 
 		map.doubleClickZoom.disable();
 		function selectSection(e, bnds) {
@@ -95,20 +97,27 @@ d3.csv("tr_all_final1.csv", function(error, data){
 				var y1 = e.latlng.lat + EPS;
 			} else {
 				var x0 = bnds[0];
-				var x1 = bnds[1];
-				var y0 = bnds[2];
-				var y1 = bnds[3];
+				var y0 = bnds[1]; 
+				var x1 = bnds[2]; 
+				var y1 = bnds[3]; 
 			}
 
-			//lastBrushSet.forEach(tid => {
-			//	d3.select('.t' + tid)
-			//		.attr('stroke', '#111')
-			//		.attr('stroke-opacity', 0.05);
-			//});
+			lastBrushSet
+				.map(tid => tidToPath[tid])
+				.filter(x => x)
+				.map(x => x.polyline)
+				.forEach(line => {
+					line.setStyle({ color: '#fff', opacity: 0.05 });
+				});
 
 			lastBrushSet = q(x0, y0, x1, y1);
 
-			var circs = lastBrushSet
+			if(lastTimeoutID !== null) {
+				clearTimeout(lastTimeoutID);
+				circs.forEach(c => map.removeLayer(c.circle));
+			}
+
+			circs = lastBrushSet
 				.map(tid => tidToPath[tid])
 				.filter(x => x)
 				.map(x => x.path)
@@ -139,10 +148,10 @@ d3.csv("tr_all_final1.csv", function(error, data){
 				circs.forEach(function(c) {
 					c.circle.setLatLng(c.path[c.index++%c.path.length]);
 				});
-				setTimeout(update, DELAY - (Date.now() - t));
+				lastTimeoutID = setTimeout(update, DELAY - (Date.now() - t));
 				t = Date.now();
 			}
-			setTimeout(update, DELAY);
+			lastTimeoutID = setTimeout(update, DELAY);
 
 		}
 		map.on('dblclick', selectSection);
@@ -150,7 +159,7 @@ d3.csv("tr_all_final1.csv", function(error, data){
 
 		var start = null;
 		var nullBounds = [[0,0],[0,0]];
-		var rect = L.rectangle(nullBounds).addTo(map);
+		var rect = L.rectangle(nullBounds, { color: 'orange', opacity: 1}).addTo(map);
 		map.on('mousedown', e => {
 			start = e.latlng;
 		});
@@ -164,6 +173,7 @@ d3.csv("tr_all_final1.csv", function(error, data){
 			}
 		});
 		map.on('mouseup', e => {
+			if(!start || !e) return;
 			x0 = Math.min(start.lng, e.latlng.lng);
 			x1 = Math.max(start.lng, e.latlng.lng);
 			y0 = Math.min(start.lat, e.latlng.lat);
