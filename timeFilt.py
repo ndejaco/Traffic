@@ -23,14 +23,12 @@ for idx, row in enumerate(reader):
         tid = fields.index("TripID")
         if row[tid] == watchout:
             lastrow = row
-            pass
+            continue
         if (lastrow[tid] == row[tid]):
             if int(row[unixtime]) - int(lastrow[unixtime]) <= int(sys.argv[1]):
                 rows.append(row)
                 lastrow = row
             else:
-                print("%s:%d" % (row[tid],
-                      int(row[unixtime])-int(lastrow[unixtime])), file=sys.stderr)
                 while rows[-1][tid] == row[tid]:
                     rows.pop()
                 watchout = row[tid]
