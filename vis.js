@@ -9,7 +9,7 @@ var map = L.map('map').setView([32.22, -110.93], 11);
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
     maxZoom: 20,
     id: 'youhaowei.op72jf9g',
-    accessToken: 'pk.eyJ1IjoieW91aGFvd2VpIiwiYSI6ImNpanFyOTl0ZTAzcnZ1eWx4M3R4YWh4cjkifQ.euhHOxoz-qgt9e93YGqlSQ'
+		accessToken: '<Your token here>'
 }).addTo(map);
 
 var globals = {
@@ -159,7 +159,7 @@ d3.csv("tr_all_final1.csv", function(error, data){
 					line.setStyle({ color: '#f00', opacity: 0.1 });
 				});
 
-			var REAL_SEC_PER_VIS_SEC = 10;
+			var REAL_SEC_PER_VIS_SEC = 30;
 
 			function daySeconds(d) {
 				return (d.getHours() * 60 * 60 + d.getMinutes() * 60 + d.getSeconds() + d.getMilliseconds() / 1000) % (24 * 60 * 60);
