@@ -13,7 +13,8 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 }).addTo(map);
 
 var globals = {
-	timeExtent: [new Date(2015, 10, 1, 8, 0, 0), new Date(2015, 10, 1, 12, 0, 0)]
+	timeExtent: [new Date(2015, 10, 1, 8, 0, 0), new Date(2015, 10, 1, 12, 0, 0)],
+	selectedUIDs: {}
 };
 
 // create a red polyline from an array of LatLng points
@@ -28,7 +29,7 @@ d3.csv("tr_all_final1.csv", function(error, data){
     }
 		var q = quadtree(data);
     console.log(data.length)
-    //data = data.filter(function(d,i){ return i % 1 === 0;})
+    data = data.filter(function(d,i){ return i % 2 === 0;})
     console.log(data.length)
     //console.log(data);
     var paths = [];
@@ -54,6 +55,7 @@ d3.csv("tr_all_final1.csv", function(error, data){
             var date = new Date(Number(d.unixtime))
             currPath = {
 							tid: d.TripID,
+							uid: d.UserID,
 							date: date,
 							dates: [date],
 							path: [l]
@@ -138,8 +140,9 @@ d3.csv("tr_all_final1.csv", function(error, data){
 				.filter(x => x)
 				.map(collection => {
 					var path = collection.path;
+					var highlighted = globals.selectedUIDs[collection.uid];
 					return {
-						circle: L.circle(path[0], 15, { color: '#FFA500', opacity: 0 }),
+						circle: L.circle(path[0], highlighted ? 50 : 15, { color: highlighted ? '#0000FF' : '#FFA500', opacity: 0 }),
 						index: 0,
 						path: path,
 						tid: collection.tid
@@ -156,10 +159,10 @@ d3.csv("tr_all_final1.csv", function(error, data){
 					line.setStyle({ color: '#f00', opacity: 0.1 });
 				});
 
-			var REAL_SEC_PER_VIS_SEC = 300;
+			var REAL_SEC_PER_VIS_SEC = 10;
 
 			function daySeconds(d) {
-				return d.getHours() * 60 * 60 + d.getMinutes() * 60 + d.getSeconds() + d.getMilliseconds() / 1000;
+				return (d.getHours() * 60 * 60 + d.getMinutes() * 60 + d.getSeconds() + d.getMilliseconds() / 1000) % (24 * 60 * 60);
 			}
 			var vis_start = daySeconds(new Date());
 			var data_start = daySeconds(globals.timeExtent[0]);
@@ -183,10 +186,7 @@ d3.csv("tr_all_final1.csv", function(error, data){
 
 					if(c.index === 0 || c.index >= dates.length - 1) {
 						c.circle.setStyle({ opacity: 0 });
-						//console.log('nope', c.index)
-						//console.log(daySeconds(dates[0]) / 3600, daySeconds(dates[0]) % 3600);
 					} else {
-						//console.log('yep')
 						c.circle.setStyle({ opacity: 1 });
 						var f = ((data_diff + data_start) - daySeconds(dates[c.index])) / 
 								(daySeconds(dates[c.index + 1]) - daySeconds(dates[c.index]))
@@ -202,11 +202,11 @@ d3.csv("tr_all_final1.csv", function(error, data){
 
 				});
 				if(circs.length)
-					lastTimeoutID = setTimeout(update, 0);
-				//console.log(Date.now() - t);
+					lastTimeoutID = setTimeout(update, 100);
+				console.log(Date.now() - t);
 				t = Date.now();
 			}
-			lastTimeoutID = setTimeout(update, 0);
+			lastTimeoutID = setTimeout(update, 100);
 
 		}
 		map.on('dblclick', selectSection);
@@ -240,7 +240,8 @@ d3.csv("tr_all_final1.csv", function(error, data){
 			map.removeLayer(rect);
 		});
 
-        setupTimeCtrl(paths)
+        //setupTimeCtrl(paths)
+		startForce();
 		console.log('really done');
 });
 
@@ -283,6 +284,10 @@ var rect = document.getElementById('time-selector').getBoundingClientRect();
 var width = rect.width;
 var height = rect.height;
 
+var skyColor = d3.scale.linear()
+	.domain([0, 8, 18, 24])
+	.range(['blue',  '#ffff99', '#ffff99', 'blue'])
+
 var xScale = d3.scale.linear()
 	.domain([0, 24])
 	.range([0, width]);
@@ -305,7 +310,7 @@ groups
 	.append('rect')
 	.attr('width', d => xScale(1) - xScale(0))
 	.attr('height', d => height)
-	.attr('fill', 'white')
+	.attr('fill', skyColor)
 	.attr('stroke', 'black')
 
 d3.selectAll('.time-box')
@@ -313,3 +318,95 @@ d3.selectAll('.time-box')
 	.attr('y', 20)
 	.attr('x', 5)
 	.text(d => d + ':00')
+
+
+var startForce = (function() {
+
+	var userids = [ 95, 498, 760, 799, 876, 906, 957, 961, 975, 986, 1018, 1025, 1031, 1076, 1167, 1170, 1176, 1209, 1253, 1284, 1291, 1384, 1391, 1398, 1417, 1428, 1429, 1431, 1450, 1453, 1487, 1536, 1557, 1580, 1585, 1595, 1603, 1609, 1628, 1651, 1658, 1672, 1730, 1731, 1732, 1819, 1856, 1870, 1902, 1909, 1933, 1994, 2006, 2009, 2089, 2143, 2153, 2179, 2195, 2199, 2206, 2231, 2238, 2256, 2278, 2279, 2293, 2332, 2335, 2339, 2443, 2477, 2493, 2495, 3542, 3694, 3709, 3763, 4050, 4228, 4312, 4484, 4485, 4487, 4753, 4757, 4771, 4784, 4828, 4867, 4881, 4911, 4968, 5021, 5108, 5264, 5288, 5323, 5477 ];
+	var id = '#user-div';
+	var el = document.getElementById(id.substring(1)).getBoundingClientRect();
+	var width = el.width
+	    height = el.height;
+	
+	var color = d3.scale.category20();
+	
+	var force = d3.layout.force()
+	    .linkDistance(10)
+	    .linkStrength(10)
+	    .size([width, height]);
+
+	var svg = d3.select(id).append("svg")
+	    .attr("width", width)
+	    .attr("height", height);
+	
+	var nodes
+	
+	d3.json("similarity.json", function(error, graph) {
+	  if (error) throw error;
+	
+	  nodes = graph.nodes.slice();
+	  var links = [];
+	  var bilinks = [];
+	
+	  graph.links.forEach(function(link) {
+	    var s = nodes[link.source],
+	        t = nodes[link.target],
+	        i = {}; // intermediate node
+	    nodes.push(i);
+	    links.push({source: s, target: i}, {source: i, target: t});
+	    bilinks.push([s, i, t]);
+	  });
+	
+	  force
+	      .nodes(nodes)
+	      .links(links);
+	
+	  var link = svg.selectAll(".link")
+	      .data(bilinks)
+	    .enter().append("path")
+	      .attr("class", "link");
+	
+	  var node = svg.selectAll(".node")
+	      .data(graph.nodes)
+	    .enter().append("circle")
+	      .attr("class", "node")
+	      .attr("r", 5)
+	      .style("fill", function(d) { return color(d.group); })
+	      .call(force.drag);
+	
+	  node.append("title")
+	      .text(function(d) { return d.name; });
+	
+	  force.on("tick", function() {
+	    link.attr("d", function(d) {
+	      return "M" + d[0].x + "," + d[0].y
+	          + "S" + d[1].x + "," + d[1].y
+	          + " " + d[2].x + "," + d[2].y;
+	    });
+	    node.attr("transform", function(d) {
+	      return "translate(" + d.x + "," + d.y + ")";
+	    });
+	  });
+	});
+
+
+	return () => {
+		force.start();
+
+		var brush = d3.svg.brush()
+			.x(d3.scale.linear().domain([0, width]).range([0, width]))
+			.y(d3.scale.linear().domain([0, height]).range([0, height]))
+			.on('brushend', function() {
+				var x = {};
+				var e = brush.extent();
+				nodes.forEach((d, i) => {
+					if(e[0][0] < d.x && d.x < e[1][0] && e[1][0] < d.y && e[1][1])
+						x[userids[i]] = true;
+				})
+				globals.selectedUIDs = x;
+				selectSection();
+			});
+		
+		svg.append('g').call(brush);
+	};
+})();
