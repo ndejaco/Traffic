@@ -46,31 +46,96 @@ d3.csv("small.csv", function(error, data){
                 //console.log(currPath.tid);
                 paths.push(currPath);
             }
-            var date = new Date(d.unixtime);
-            currPath = {tid: d.TripID, date: date, path: [l]};
+            var date = new Date(Number(d.unixtime))
+            var hour = date.getHours();
+            var min = Math.floor(date.getMinutes()/15)*4;
+            currPath = {
+							tid: d.TripID, 
+							hour: hour, 
+							minute: min, 
+							date: date, 
+							path: [l]
+						};
         }
     }
     delete data;
     console.log("Data Loop Done: " + (new Date().getTime() - startTime) + " ms.")
     //console.log(paths)
+		
+		console.log(paths[0])
+		var tidToPath = paths.reduce(function(o, path) { 
+			o[path.tid] = path;	
+			return o;
+		}, {});
+		
     for (var p in paths) {
         //console.log(paths[p]);
-        var polyline = L.polyline(paths[p].path, {color: "#fff", opacity: 0.05, weight: 2, className: "t" + p}).addTo(map);
+        var polyline = L.polyline(paths[p].path, {color: "#fff", opacity: 0.05, weight: 2, className: "t" + paths[p].tid}).addTo(map);
+				paths[p].polyline = polyline
         //polylines.push(polyline);
-        polyline.on("click", function(e) {
-            e.target.setStyle({ color: colorScale(i), opacity: 0.75, weight:6});
-            e.target.bringToFront();
-            i++;
-        })
+    //    polyline.on("click", function(e) {
+    //        e.target.setStyle({ color: colorScale(i), opacity: 0.75, weight:6});
+    //        e.target.bringToFront();
+    //        console.log(e.target._path);
+    //        i++;
+    //    })
     }
     console.log("All Done: " + (new Date().getTime() - startTime) + " ms.")
-		//q(-110.90, 32.20, -110.89, 32.21).forEach(tid => {
-		q(-1000, -1000, 1000, 1000).forEach((tid, i, A) => {
-			if(i == 0) console.log(A.length);
-			d3.select('.t' + tid)
-				.attr('stroke', 'red')
-				.attr('stroke-opacity', 1)
-				.moveToFront();
+
+		var lastBrushSet = [];
+		var lastHour = 8;
+
+		map.doubleClickZoom.disable();
+		map.on('dblclick', function(e) {
+			console.log(e.latlng);
+			var EPS = 0.0005;
+			var x0 = e.latlng.lng - EPS;
+			var x1 = e.latlng.lng + EPS;
+			var y0 = e.latlng.lat - EPS;
+			var y1 = e.latlng.lat + EPS;
+
+			//lastBrushSet.forEach(tid => {
+			//	d3.select('.t' + tid)
+			//		.attr('stroke', '#111')
+			//		.attr('stroke-opacity', 0.05);
+			//});
+
+			lastBrushSet = q(x0, y0, x1, y1);
+
+			var circs = lastBrushSet
+				.map(tid => tidToPath[tid].path)
+				.map(path => { 
+					var index = Math.floor(Math.random() * path.length);
+					return {
+						circle: L.circle(path[index], 3, { color: 'red', opacity: 1 }), 
+						index: index,
+						path: path
+					};
+				});
+
+			circs.forEach(c => c.circle.addTo(map));
+
+			lastBrushSet
+				.map(tid => tidToPath[tid].polyline)
+				.forEach(line => {
+					line.setStyle({ color: 'red', opacity: 1 });
+					line.moveToFront();
+				});
+
+
+			var DELAY = 100;
+
+			var t = Date.now();
+
+			function update() {
+				circs.forEach(function(c) {
+					c.circle.setLatLng(c.path[c.index++%c.path.length]);	
+				});
+				setTimeout(update, DELAY - (Date.now() - t));
+				t = Date.now();
+			}
+			setTimeout(update, DELAY);
+
 		});
 
 		console.log('really done');
