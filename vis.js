@@ -1,3 +1,9 @@
+d3.selection.prototype.moveToFront = function() {
+  return this.each(function(){
+	    this.parentNode.appendChild(this);
+	  });
+};
+
 var startTime = new Date().getTime();
 var map = L.map('map').setView([32.22, -110.93], 11);
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
@@ -11,11 +17,12 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 //var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
 var colorScale = d3.scale.category20();
 var i = 0;
-d3.csv("tr_all_filt_7col.csv", function(error, data){
+d3.csv("small.csv", function(error, data){
     console.log("file loaded: " + (new Date().getTime() - startTime) + " ms.")
     if (error) {
         alert(error);
     }
+		var q = quadtree(data);
     console.log(data.length)
     data = data.filter(function(d,i){ return i % 2 === 0;})
     console.log(data.length)
@@ -56,9 +63,46 @@ d3.csv("tr_all_filt_7col.csv", function(error, data){
             i++;
         })
     }
-    console.log(paths);
     console.log("All Done: " + (new Date().getTime() - startTime) + " ms.")
+		//q(-110.90, 32.20, -110.89, 32.21).forEach(tid => {
+		q(-1000, -1000, 1000, 1000).forEach((tid, i, A) => {
+			if(i == 0) console.log(A.length);
+			d3.select('.t' + tid)
+				.attr('stroke', 'red')
+				.attr('stroke-opacity', 1)
+				.moveToFront();
+		});
+
+		console.log('really done');
+});
+
+
+
+function dist2(n1, x, y) {
+	var d1 = (n1.LocationLatitude - x);
+	var d2 = (n1.LocationLongitute - y);
+	return d1*d1 + d2*d2;
 }
-/*, function(error, rows) {
-    console.log(error + ": " + rows);
-}*/)
+
+function quadtree(data) {
+	var root = (d3.geom.quadtree()
+			.x(d => d.LocationLongitute)
+			.y(d => d.LocationLatitude)
+						 )(data.filter((d, i) => i % 20 === 0));
+	
+	return function idsInRect(x0, y0, x3, y3) {
+		var ids = {};
+		root.visit(function(node, x1, y1, x2, y2) {
+		  var p = node.point;
+		  if (p) {
+				var lat = Number(p.LocationLatitude);
+				var lon = Number(p.LocationLongitute);
+				if(lon <= x3 && lat <= y3 && lon >= x0 && lat >= y0)
+					ids[p.TripID] = true;
+			}
+		  return x1 > x3 || y1 > y3 || x2 < x0 || y2 < y0;
+		 });
+		return Object.keys(ids);
+	};
+}
+
