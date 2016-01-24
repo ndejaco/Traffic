@@ -11,12 +11,8 @@ div.page-footer {
     border-top: 20px double #080808;
     margin-top: 50px;
     padding-top: 50px;
-    background-color: #92a2aa; /* navbar-inverse color */
+    background-color: #7F7F7F; /* navbar-inverse color */
     color: black;
-}
-
-div.page-footer a {
-    color: #D4DCE0;
 }
 
 .modal label {
