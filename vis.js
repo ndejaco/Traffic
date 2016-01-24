@@ -12,6 +12,10 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
     accessToken: 'pk.eyJ1IjoieW91aGFvd2VpIiwiYSI6ImNpanFyOTl0ZTAzcnZ1eWx4M3R4YWh4cjkifQ.euhHOxoz-qgt9e93YGqlSQ'
 }).addTo(map);
 
+var globals = {
+	timeExtent: [new Date(2015, 10, 1, 8, 0, 0), new Date(2015, 10, 1, 12, 0, 0)]
+};
+
 // create a red polyline from an array of LatLng points
 //var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
 var colorScale = d3.scale.category20();
@@ -39,6 +43,7 @@ d3.csv("tr_all_final1.csv", function(error, data){
         if (currPath.tid == d.TripID) {
             //console.log("Hello");
             currPath.path.push(l)
+            currPath.dates.push(new Date(Number(d.unixtime)));
         } else {
             //console.log("World!");
             if (currPath.tid >= 0) {
@@ -46,13 +51,10 @@ d3.csv("tr_all_final1.csv", function(error, data){
                 paths.push(currPath);
             }
             var date = new Date(Number(d.unixtime))
-            var hour = date.getHours();
-            var min = Math.floor(date.getMinutes()/15)*4;
             currPath = {
 							tid: d.TripID,
-							hour: hour,
-							minute: min,
 							date: date,
+							dates: [date],
 							path: [l]
 						};
         }
@@ -122,7 +124,7 @@ d3.csv("tr_all_final1.csv", function(error, data){
 				});
 			}
 
-			if(lastTimeoutID !== null) {
+			if(lastTimeoutID !== null || circs.length) {
 				clearTimeout(lastTimeoutID);
 				circs.forEach(c => map.removeLayer(c.circle));
 			}
@@ -130,13 +132,13 @@ d3.csv("tr_all_final1.csv", function(error, data){
 			circs = lastBrushSet
 				.map(tid => tidToPath[tid])
 				.filter(x => x)
-				.map(x => x.path)
-				.map(path => {
-					var index = Math.floor(Math.random() * path.length);
+				.map(collection => {
+					var path = collection.path;
 					return {
-						circle: L.circle(path[index], 3, { color: '#800', opacity: 1 }),
-						index: index,
-						path: path
+						circle: L.circle(path[0], 15, { color: '#FFA500', opacity: 0 }),
+						index: 0,
+						path: path,
+						tid: collection.tid
 					};
 				});
 
@@ -147,21 +149,59 @@ d3.csv("tr_all_final1.csv", function(error, data){
 				.filter(x => x)
 				.map(x => x.polyline)
 				.forEach(line => {
-					line.setStyle({ color: '#f00', opacity: 1 });
+					line.setStyle({ color: '#f00', opacity: 0.1 });
 				});
 
-			var DELAY = 400;
+			var REAL_SEC_PER_VIS_SEC = 300;
 
+			function daySeconds(d) {
+				return d.getHours() * 60 * 60 + d.getMinutes() * 60 + d.getSeconds() + d.getMilliseconds() / 1000;
+			}
+			var vis_start = daySeconds(new Date());
+			var data_start = daySeconds(globals.timeExtent[0]);
 			var t = Date.now();
 
 			function update() {
+				var vis_diff = (daySeconds(new Date()) - vis_start);
+				var data_diff = REAL_SEC_PER_VIS_SEC * vis_diff;
+
+				var hour = Math.floor((data_diff + data_start) / 3600);
+				var minute = Math.floor(((data_diff + data_start) / 60) % 60);
+				document.getElementById('clock-div').textContent = hour + ':' + (minute < 10 ? '0' + minute : minute)
+
 				circs.forEach(function(c) {
-					c.circle.setLatLng(c.path[c.index++%c.path.length]);
+					var pathOb = tidToPath[c.tid];
+					var dates = pathOb.dates;
+					while(c.index < dates.length - 1 && 
+								daySeconds(dates[c.index]) - (data_diff + data_start) < 0)
+						c.index++;
+
+					if(c.index === 0 || c.index >= dates.length - 1) {
+						c.circle.setStyle({ opacity: 0 });
+						//console.log('nope', c.index)
+						//console.log(daySeconds(dates[0]) / 3600, daySeconds(dates[0]) % 3600);
+					} else {
+						//console.log('yep')
+						c.circle.setStyle({ opacity: 1 });
+						var f = ((data_diff + data_start) - daySeconds(dates[c.index])) / 
+								(daySeconds(dates[c.index + 1]) - daySeconds(dates[c.index]))
+
+						var a = c.path[c.index];
+						var b = c.path[c.index + 1];
+						var lat = a.lat + (b.lat - a.lat) * f;
+						var lng = a.lng + (b.lng - a.lng) * f;
+						var point = L.latLng(lat, lng);
+
+						c.circle.setLatLng(point);
+					}
+
 				});
-				lastTimeoutID = setTimeout(update, DELAY - (Date.now() - t));
+				if(circs.length)
+					lastTimeoutID = setTimeout(update, 0);
+				//console.log(Date.now() - t);
 				t = Date.now();
 			}
-			lastTimeoutID = setTimeout(update, DELAY);
+			lastTimeoutID = setTimeout(update, 0);
 
 		}
 		map.on('dblclick', selectSection);
