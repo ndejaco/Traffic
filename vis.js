@@ -88,9 +88,9 @@ d3.csv("tr_all_final1.csv", function(error, data){
 		var circs = [];
 
 		map.doubleClickZoom.disable();
-		function selectSection(e, bnds) {
+		function selectSection(e, bnds, llbnds) {
 			if(e) {
-				var EPS = 0.0005;
+				var EPS = 0.002;
 				var x0 = e.latlng.lng - EPS;
 				var x1 = e.latlng.lng + EPS;
 				var y0 = e.latlng.lat - EPS;
@@ -111,6 +111,17 @@ d3.csv("tr_all_final1.csv", function(error, data){
 				});
 
 			lastBrushSet = q(x0, y0, x1, y1);
+
+			if(llbnds) {
+				lastBrushSet = lastBrushSet.filter(tid => {
+					var factor = 0.5;
+					if(!tidToPath[tid]) return false;
+					var path = tidToPath[tid].path;
+					var inBox = path.filter(ll => llbnds.contains(ll)).length 
+					var total = path.length;
+					return inBox > total * factor;j
+				});
+			}
 
 			if(lastTimeoutID !== null) {
 				clearTimeout(lastTimeoutID);
@@ -158,10 +169,10 @@ d3.csv("tr_all_final1.csv", function(error, data){
 		map.dragging.disable();
 
 		var start = null;
-		var nullBounds = [[0,0],[0,0]];
-		var rect = L.rectangle(nullBounds, { color: 'orange', opacity: 1}).addTo(map);
+		var rect = null;
 		map.on('mousedown', e => {
 			start = e.latlng;
+			rect = L.rectangle(L.latLngBounds(start, start), { color: '#B00', }).addTo(map);
 		});
 		map.on('mousemove', e => {
 			if(start) {
@@ -169,7 +180,9 @@ d3.csv("tr_all_final1.csv", function(error, data){
 				x1 = Math.max(start.lng, e.latlng.lng);
 				y0 = Math.min(start.lat, e.latlng.lat);
 				y1 = Math.max(start.lat, e.latlng.lat);
-				rect.setBounds([[x0, y0], [x1, y1]]);
+				var sw = L.latLng(y0, x0);
+				var ne = L.latLng(y1, x1);
+				rect.setBounds(L.latLngBounds(sw, ne));
 			}
 		});
 		map.on('mouseup', e => {
@@ -178,8 +191,9 @@ d3.csv("tr_all_final1.csv", function(error, data){
 			x1 = Math.max(start.lng, e.latlng.lng);
 			y0 = Math.min(start.lat, e.latlng.lat);
 			y1 = Math.max(start.lat, e.latlng.lat);
-			selectSection(undefined, [x0, y0, x1, y1]);
+			selectSection(undefined, [x0, y0, x1, y1], rect.getBounds());
 			start = null;
+			map.removeLayer(rect);
 		});
 
 
