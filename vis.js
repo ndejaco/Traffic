@@ -240,7 +240,7 @@ d3.csv("tr_all_final1.csv", function(error, data){
 			map.removeLayer(rect);
 		});
 
-
+        setupTimeCtrl(paths)
 		console.log('really done');
 });
 
