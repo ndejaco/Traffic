@@ -17,7 +17,7 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 //var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
 var colorScale = d3.scale.category20();
 var i = 0;
-d3.csv("small.csv", function(error, data){
+d3.csv("tr_all_final1.csv", function(error, data){
     console.log("file loaded: " + (new Date().getTime() - startTime) + " ms.")
     if (error) {
         alert(error);
@@ -152,11 +152,9 @@ d3.csv("small.csv", function(error, data){
 		var nullBounds = [[0,0],[0,0]];
 		var rect = L.rectangle(nullBounds).addTo(map);
 		map.on('mousedown', e => {
-			console.log('mousedown', e)
 			start = e.latlng;
 		});
 		map.on('mousemove', e => {
-			console.log('mousemove', e)
 			if(start) {
 				x0 = Math.min(start.lng, e.latlng.lng);
 				x1 = Math.max(start.lng, e.latlng.lng);
@@ -166,7 +164,6 @@ d3.csv("small.csv", function(error, data){
 			}
 		});
 		map.on('mouseup', e => {
-			console.log('mouseup', e)
 			x0 = Math.min(start.lng, e.latlng.lng);
 			x1 = Math.max(start.lng, e.latlng.lng);
 			y0 = Math.min(start.lat, e.latlng.lat);
